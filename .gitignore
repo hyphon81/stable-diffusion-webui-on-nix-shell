@@ -1,0 +1,8 @@
+.#*
+/*.txt
+/*.py
+/*.json
+/*.lock
+models
+log
+outputs/*
