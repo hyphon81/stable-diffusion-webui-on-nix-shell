@@ -3,7 +3,7 @@ let
   opencv = pkgs.opencv4.override {
     enableGtk2 = true;
     enableCuda = true;
-    cudatoolkit = cudaPackages.cudatoolkit;
+    cudaPackages= cudaPackages;
     enablePython = true;
     pythonPackages = pythonPackages;
   };

@@ -29,6 +29,8 @@ python.pkgs.buildPythonPackage rec {
     pythonPackages.watchfiles
     pythonPackages.httptools
     pythonPackages.httpx
+    pythonPackages.email-validator
+    pythonPackages.python-dotenv
   ];
 
   meta = with lib; {

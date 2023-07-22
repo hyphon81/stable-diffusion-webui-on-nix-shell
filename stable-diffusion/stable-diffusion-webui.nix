@@ -14,9 +14,9 @@ let
     };
   };
 
-  ## torch version is old however it can run.
   torch = pythonPackages.torch.override {
     cudaSupport = true;
+    gpuTargets = [ "3.5" "3.7" "5.0" "5.2" "5.3" "6.0" "6.1" "6.2" "7.0" "7.2" "7.5" "8.0" "8.6" ];
     protobuf = pythonPackages.protobuf3;
     tensorboard = tensorboard;
   };
@@ -32,12 +32,12 @@ let
 
   pytorch-lightning = pythonPackages.pytorch-lightning.overridePythonAttrs (old: rec {
     pname = "pytorch-lightning";
-    version = "1.7.7";
+    version = "1.9.4";
     src = fetchFromGitHub {
       owner = "Lightning-AI";
       repo = "lightning";
-      rev = "refs/tags/1.7.7";
-      hash = "sha256-KMd7EQLxHowlxJi5nJD0d9bkBrSx+r1RgPy/SYUN8uU=";
+      rev = "refs/tags/1.9.4";
+      hash = "sha256-gUxZU+UURpj6u/TekxcpdCVHy6/tfrDu6w4WlhWMz+o=";
     };
 
     propagatedBuildInputs = [
@@ -46,6 +46,7 @@ let
       pythonPackages.fsspec
       pythonPackages.pyyaml
       pythonPackages.tqdm
+      pythonPackages.lightning-utilities
       pythonPackages.torchmetrics
       torch
       tensorboard
@@ -317,6 +318,12 @@ let
     opencv = opencv;
   };
 
+  tomesd = callPackage ./tomesd.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+    torch = torch;
+  };
+
   stable-diffusion-ai = fetchgit {
     url = "https://github.com/Stability-AI/stablediffusion.git";
     rev = "cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf";
@@ -331,8 +338,8 @@ let
 
   k-diffusion = fetchgit {
     url = "https://github.com/crowsonkb/k-diffusion.git";
-    rev = "5b3af030dd83e0297272d861c19477735d0317ec";
-    sha256 = "sha256-lnjYsMVjL6rVbWVvAjVQRcK3CSs2CGOEsN3nw6pS3rk=";
+    rev = "c9fe758757e022f05ca5a53fa8fac28889e4f1cf";
+    sha256 = "sha256-yEvJ4BNmUlGXDygU8/ZOt3/rbDK4d5h26ix15h+cuRc=";
   };
 
   codeformer = fetchgit {
@@ -355,8 +362,8 @@ pythonPackages.buildPythonApplication {
   name = "stable-diffusion-webui";
   src = fetchgit {
     url = "https://github.com/AUTOMATIC1111/stable-diffusion-webui.git";
-    rev = "22bcc7be42";
-    sha256 = "sha256-XVdPS9k9pTSX0Udo/rNkXK7eVkAREr3QAUOMJnOIm04=";
+    rev = "refs/tags/v1.4.0";
+    sha256 = "sha256-ya8CgAEpGI6pE7B44nXd2zDLqFccmG45XRzI4GpEyac=";
   };
 
   propagatedBuildInputs = [
@@ -405,6 +412,7 @@ pythonPackages.buildPythonApplication {
     facexlib
     pythonPackages.httpcore
     invisible-watermark
+    tomesd
     opencv
     safetensors
     pythonPackages.aenum
@@ -439,17 +447,15 @@ pythonPackages.buildPythonApplication {
 
     ## launch.py into bin and supress git clone
     sed -i -e "1i #!${pythonPackages.python}/bin/python" launch.py
-    substituteInPlace launch.py --replace "git_clone(" "#git_clone("
-    substituteInPlace launch.py --replace "def #git_clone(" "def git_clone("
-
-    ## requirements_version.txt is read when launch.py is running with no arg
-    substituteInPlace requirements.txt --replace "opencv-contrib-python" "opencv";
-    substituteInPlace requirements.txt --replace "pytorch_lightning==1.7.7" "lightning"
-    cp requirements.txt $out/${pythonPackages.python.sitePackages}/requirements_versions.txt
+    substituteInPlace modules/launch_utils.py --replace "git_clone(" "#git_clone("
+    substituteInPlace modules/launch_utils.py --replace "def #git_clone(" "def git_clone("
 
     ## to fix js scripts path
-    sed -i -e "265i\\            file_directories=[\"$out/${pythonPackages.python.sitePackages}\"],\\" webui.py
-    sed -i -e "1759i\\    web_path = os.path.abspath(fn)\\" modules/ui.py
+    # add arg to shared.demo.launch()
+    sed -i -e "399i\\            file_directories=[\"$out/${pythonPackages.python.sitePackages}\"],\\" webui.py
+
+    # config_states directory is writable
+    substituteInPlace modules/paths_internal.py --replace "os.path.join(script_path, \"config_states\")" "os.path.join(data_path, \"config_states\")"
 
     ## put necessary *.js files
     mkdir $out/${pythonPackages.python.sitePackages}/extensions-builtin

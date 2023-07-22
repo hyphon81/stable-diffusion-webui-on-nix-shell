@@ -2,7 +2,7 @@
 
 python.pkgs.buildPythonPackage rec {
   pname = "gradio-client";
-  version = "0.1.3";
+  version = "0.2.10";
   format = "wheel";
 
   src = python.pkgs.fetchPypi {
@@ -10,7 +10,7 @@ python.pkgs.buildPythonPackage rec {
     inherit version format;
     dist = "py3";
     python = "py3";
-    hash = "sha256-H84zfA+8G62xfStpIteK9iKQHdAxK3fYXeep4iu8xwo=";
+    hash = "sha256-ix4yCT92aBK5HGV1boWti75tYLiFuHtHkIpyNZyNcqA=";
   };
 
   propagatedBuildInputs = [

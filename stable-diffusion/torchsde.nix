@@ -22,8 +22,8 @@ python.pkgs.buildPythonPackage rec {
   ];
 
   preConfigure = ''
-    substituteInPlace setup.py --replace "numpy==1.19" "numpy>=1.19"
-    substituteInPlace setup.py --replace "scipy==1.5" "scipy>=1.5"
+    substituteInPlace setup.py --replace "numpy==1.19.*" "numpy>=1.19"
+    substituteInPlace setup.py --replace "scipy==1.5.*" "scipy>=1.5"
   '';
 
   pythonImportsCheck = [
