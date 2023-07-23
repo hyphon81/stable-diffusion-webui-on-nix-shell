@@ -192,14 +192,20 @@ let
     python = python;
   };
 
-  ## Not yet implemented 
-  #xformers = callPackage ./xformers.nix {
-  #  pythonPackages = pythonPackages;
-  #  python = python;
-  #  torch = torch;
-  #  torchvision = torchvision;
-  #};
-  #
+  pyre-extensions = callPackage ./pyre-extensions.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+  };
+
+  xformers = callPackage ./xformers.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+    cudaPackages = cudaPackages;
+    torch = torch;
+    pyre-extensions = pyre-extensions;
+  };
+
+  ## Not yet implemented
   #pyngrok = callPackage ./pyngrok.nix {
   #  pythonPackages = pythonPackages;
   #  python = python;
@@ -376,7 +382,7 @@ pythonPackages.buildPythonApplication {
     clip
     open_clip
     timm
-    #xformers
+    xformers
     #pyngrok
     lpips
 
@@ -453,6 +459,8 @@ pythonPackages.buildPythonApplication {
     ## to fix js scripts path
     # add arg to shared.demo.launch()
     sed -i -e "399i\\            file_directories=[\"$out/${pythonPackages.python.sitePackages}\"],\\" webui.py
+    # set abspath to web_path
+    sed -i -e "13i\\    web_path = os.path.abspath(fn)\\" modules/ui_gradio_extensions.py
 
     # config_states directory is writable
     substituteInPlace modules/paths_internal.py --replace "os.path.join(script_path, \"config_states\")" "os.path.join(data_path, \"config_states\")"
