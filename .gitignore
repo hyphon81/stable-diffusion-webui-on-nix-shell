@@ -3,6 +3,8 @@
 /*.py
 /*.json
 /*.lock
+*.bk
 models
 log
 outputs/*
+extensions/*

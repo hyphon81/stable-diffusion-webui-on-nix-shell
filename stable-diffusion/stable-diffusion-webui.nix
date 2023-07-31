@@ -360,6 +360,36 @@ let
     sha256 = "sha256-0IO+3M/Gy4VrNBFYYgZB2CzWhT3PTGBXNKPad61px5k=";
   };
 
+  ## For Extenstions
+
+  mediapipe = callPackage ./mediapipe.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+    opencv = opencv;
+    protobuf = pythonPackages.protobuf3;
+    cudaPackages = cudaPackages;
+  };
+
+  ultralytics = callPackage ./ultralytics.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+    torch = torch;
+    torchvision = torchvision;
+    opencv = opencv;
+  };
+
+  iopath = callPackage ./iopath.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+  };
+
+  fvcore = callPackage ./fvcore.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+    iopath = iopath;
+  };
+
+  ## setup.py
   setuppy = ./setup.py;
 in
   
@@ -423,6 +453,13 @@ pythonPackages.buildPythonApplication {
     safetensors
     pythonPackages.aenum
     pythonPackages.deprecation
+
+    pythonPackages.svglib
+    pythonPackages.py-cpuinfo
+    pythonPackages.packaging
+    mediapipe
+    ultralytics
+    fvcore
   ];
 
   preConfigure = ''

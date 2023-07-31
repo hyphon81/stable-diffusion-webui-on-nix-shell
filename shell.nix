@@ -27,6 +27,8 @@ in
   pkgs.mkShell {
     name = "stable-diffusion-devenv";
 
+    LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+
     propagatedBuildInputs = with pkgs; [
       git
       python
