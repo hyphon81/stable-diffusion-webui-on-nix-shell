@@ -1,4 +1,4 @@
-{ lib, pythonPackages, python, starlette }:
+{ lib, pythonPackages, python }:
 
 python.pkgs.buildPythonPackage rec {
   pname = "starsessions";
@@ -11,7 +11,7 @@ python.pkgs.buildPythonPackage rec {
 
   buildInputs = [
     pythonPackages.itsdangerous
-    starlette
+    pythonPackages.starlette
   ];
 
   doCheck = false;

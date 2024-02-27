@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, fetchgit, fetchFromGitHub,
+{ lib, stdenv, fetchurl, fetchgit, fetchFromGitHub, fetchPypi,
   cudaPackages, pythonPackages, python, opencv,
   callPackage
 }:
@@ -60,92 +60,25 @@ let
     ];
   });
 
-  transformers = pythonPackages.transformers.overridePythonAttrs (old: rec {
-    pname = "transformers";
-    version = "4.25.1";
-    src = fetchFromGitHub {
-      owner = "huggingface";
-      repo = "transformers";
-      rev = "refs/tags/v4.25.1";
-      hash = "sha256-b0xEHM72HcaTRgGisB6fnPrMaXZ8EcJfowwK92W4aYg=";
-    };
+  transformers = pythonPackages.transformers.override {
+    torch = torch;
+    torchvision = torchvision;
+    huggingface-hub = huggingface_hub;
+    accelerate = accelerate;
+    protobuf = pythonPackages.protobuf3;
+    timm = timm;
+  };
 
-    propagatedBuildInputs = [
-      pythonPackages.filelock
-      huggingface_hub
-      pythonPackages.numpy
-      pythonPackages.protobuf3
-      pythonPackages.packaging
-      pythonPackages.pyyaml
-      pythonPackages.regex
-      pythonPackages.requests
-      pythonPackages.tokenizers
-      pythonPackages.tqdm
-      torch
-      tensorboard
-    ];
-  });
-
-  huggingface_hub = pythonPackages.huggingface-hub.overridePythonAttrs (old: rec {
-    version = "0.13.4";
-    src = fetchFromGitHub {
-      owner = "huggingface";
-      repo = "huggingface_hub";
-      rev = "refs/tags/v0.13.4";
-      hash = "sha256-gauEwI923jUd3kTZpQ2VRlpHNudytz5k10n1yFo0Mm8=";
-    };
-  });
-
-  fastapi = pythonPackages.fastapi.overridePythonAttrs (old: rec {
-    pname = "fastapi";
-    version = "0.90.1";
-    src = fetchFromGitHub {
-      owner = "tiangolo";
-      repo = "fastapi";
-      rev = "refs/tags/0.90.1";
-      hash = "sha256-sLFd6CXOHvnmjqx2gOmuQGOBsfN6RLk1fLlCpkZ60uQ=";
-    };
-
-    
-    propagatedBuildInputs = [
-      starlette
-      pythonPackages.pydantic
-    ];
-
-    doCheck = false;
-  });
-
-  starlette = pythonPackages.starlette.overridePythonAttrs (old: rec {
-    pname = "starlette";
-    version = "0.22.0";
-    format = "pyproject";
-
-    src = fetchFromGitHub {
-      owner = "encode";
-      repo = "starlette";
-      rev = "refs/tags/0.22.0";
-      hash = "sha256-vyGLNQMCWu3zGFF7jRuozVLCqwR1zWBWuYTIDRBncHk=";
-    };
-
-    nativeBuildInputs = [
-      pythonPackages.hatchling
-    ];
-
-    patches = [ ];
-
-    doCheck = false;
-  });
+  huggingface_hub = pythonPackages.huggingface-hub;
 
   lightning-cloud = callPackage ./lightning-cloud.nix {
     pythonPackages = pythonPackages;
     python = python;
-    fastapi = fastapi;
   };
 
   starsessions = callPackage ./starsessions.nix {
     pythonPackages = pythonPackages;
     python = python;
-    starlette = starlette;
   };
 
   fonts = callPackage ./fonts.nix {
@@ -187,29 +120,13 @@ let
     huggingface_hub = huggingface_hub;
   };
 
-  safetensors = callPackage ./safetensors.nix {
-    pythonPackages = pythonPackages;
-    python = python;
-  };
+  pyngrok = pythonPackages.pyngrok;
 
-  pyre-extensions = callPackage ./pyre-extensions.nix {
-    pythonPackages = pythonPackages;
-    python = python;
-  };
-
-  xformers = callPackage ./xformers.nix {
-    pythonPackages = pythonPackages;
-    python = python;
-    cudaPackages = cudaPackages;
+  xformers = pythonPackages.xformers.override {
     torch = torch;
-    pyre-extensions = pyre-extensions;
+    transformers = transformers;
+    timm = timm;
   };
-
-  ## Not yet implemented
-  #pyngrok = callPackage ./pyngrok.nix {
-  #  pythonPackages = pythonPackages;
-  #  python = python;
-  #};
 
   lpips = callPackage ./lpips.nix {
     pythonPackages = pythonPackages;
@@ -224,11 +141,9 @@ let
     python = python;
   };
 
-  accelerate = callPackage ./accelerate.nix {
-    pythonPackages = pythonPackages;
-    python = python;
+  accelerate = pythonPackages.accelerate.override {
     torch = torch;
-    torchvision = torchvision;
+    transformers = transformers;
   };
 
   basicsr = callPackage ./basicsr.nix {
@@ -248,20 +163,25 @@ let
     torchvision = torchvision;
   };
 
-  gradio = callPackage ./gradio.nix {
-    pythonPackages = pythonPackages;
-    python = python;
-    huggingface_hub = huggingface_hub;
-    gradio-client = gradio-client;
-    ffmpy = ffmpy;
-    fastapi = fastapi;
-  };
+  gradio = (
+    pythonPackages.gradio.override {
+      torch = torch;
+      transformers = transformers;
+    }).overridePythonAttrs (old: rec {
+      version = "3.41.2";
 
-  gradio-client = callPackage ./gradio-client.nix {
-    pythonPackages = pythonPackages;
-    python = python;
-    huggingface_hub = huggingface_hub;
-  };
+      src = fetchPypi {
+        pname = "gradio";
+        version = "3.41.2";
+        hash = "sha256-lcYrUEGVq+M2PQFRZ86Eis3he3W4lKeaLeeMz8/YLLI=";
+      };
+
+      disabledTests = old.disabledTests ++ [
+        "test_config_watch_app"
+        "test_config_load_default"
+        "test_reload_run_default"
+      ];
+  });
 
   ffmpy = callPackage ./ffmpy.nix {
     pythonPackages = pythonPackages;
@@ -336,6 +256,12 @@ let
     sha256 = "sha256-yEtrz/JTq53JDI4NZI26KsD8LAgiViwiNaB2i1CBs/I=";
   };
 
+  stable-diffusion-xl-ai = fetchgit {
+    url = "https://github.com/Stability-AI/generative-models.git";
+    rev = "45c443b316737a4ab6e40413d7794a7f5657c19f";
+    sha256 = "sha256-qaZeaCfOO4vWFZZAyqNpJbTttJy17GQ5+DM05yTLktA=";
+  };
+
   taming-transformers = fetchgit {
     url = "https://github.com/CompVis/taming-transformers.git";
     rev = "24268930bf1dce879235a7fddd0b2355b84d7ea6";
@@ -393,13 +319,12 @@ let
   setuppy = ./setup.py;
 in
   
-#stdenv.mkDerivation rec {
 pythonPackages.buildPythonApplication {
   name = "stable-diffusion-webui";
   src = fetchgit {
     url = "https://github.com/AUTOMATIC1111/stable-diffusion-webui.git";
-    rev = "refs/tags/v1.4.0";
-    sha256 = "sha256-ya8CgAEpGI6pE7B44nXd2zDLqFccmG45XRzI4GpEyac=";
+    rev = "refs/tags/v1.7.0";
+    sha256 = "sha256-xOId/D5eJszmRn0tCZtS+/u5WQUBpdPQ0I5XZIv3FvE=";
   };
 
   propagatedBuildInputs = [
@@ -413,7 +338,7 @@ pythonPackages.buildPythonApplication {
     open_clip
     timm
     xformers
-    #pyngrok
+    pyngrok
     lpips
 
     pythonPackages.rich
@@ -450,7 +375,7 @@ pythonPackages.buildPythonApplication {
     invisible-watermark
     tomesd
     opencv
-    safetensors
+    pythonPackages.safetensors
     pythonPackages.aenum
     pythonPackages.deprecation
 
@@ -473,6 +398,7 @@ pythonPackages.buildPythonApplication {
     touch modules/hypernetworks/__init__.py
     touch modules/models/__init__.py
     touch modules/models/diffusion/__init__.py
+    touch modules/processing_scripts/__init__.py
     touch modules/textual_inversion/__init__.py
     touch extensions-builtin/__init__.py
     touch extensions-builtin/LDSR/__init__.py
@@ -484,20 +410,20 @@ pythonPackages.buildPythonApplication {
     touch extensions-builtin/SwinIR/__init__.py
     touch extensions-builtin/SwinIR/scripts/__init__.py
 
+    ## executable launch.py
+    sed -i -e "1i\\#!/usr/bin/env python3\\" launch.py
     ## launch.py is needed in lib
     mkdir -p $out/${pythonPackages.python.sitePackages}/
     cp launch.py $out/${pythonPackages.python.sitePackages}/
 
-    ## launch.py into bin and supress git clone
-    sed -i -e "1i #!${pythonPackages.python}/bin/python" launch.py
-    substituteInPlace modules/launch_utils.py --replace "git_clone(" "#git_clone("
-    substituteInPlace modules/launch_utils.py --replace "def #git_clone(" "def git_clone("
-
     ## to fix js scripts path
-    # add arg to shared.demo.launch()
-    sed -i -e "399i\\            file_directories=[\"$out/${pythonPackages.python.sitePackages}\"],\\" webui.py
     # set abspath to web_path
     sed -i -e "13i\\    web_path = os.path.abspath(fn)\\" modules/ui_gradio_extensions.py
+    # webui.py is needed in lib
+    cp webui.py $out/${pythonPackages.python.sitePackages}/
+
+    # model loading
+    substituteInPlace modules/sd_disable_initialization.py --replace "self.CLIPTextModel_from_pretrained(None," "self.CLIPTextModel_from_pretrained(pretrained_model_name_or_path,"
 
     # config_states directory is writable
     substituteInPlace modules/paths_internal.py --replace "os.path.join(script_path, \"config_states\")" "os.path.join(data_path, \"config_states\")"
@@ -526,6 +452,8 @@ pythonPackages.buildPythonApplication {
     ## put necessary repos
     mkdir -p $out/${pythonPackages.python.sitePackages}/repositories
     ln -s ${stable-diffusion-ai} $out/${pythonPackages.python.sitePackages}/repositories/stable-diffusion-stability-ai
+    ln -s ${stable-diffusion-xl-ai} $out/${pythonPackages.python.sitePackages}/repositories/generative-models
+    ln -s ${stable-diffusion-xl-ai}/sgm $out/${pythonPackages.python.sitePackages}/sgm
     ln -s ${blip} $out/${pythonPackages.python.sitePackages}/repositories/BLIP
     ln -s ${codeformer} $out/${pythonPackages.python.sitePackages}/repositories/CodeFormer
     ln -s ${k-diffusion} $out/${pythonPackages.python.sitePackages}/repositories/k-diffusion

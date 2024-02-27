@@ -1,4 +1,4 @@
-{ lib, pythonPackages, python, fastapi }:
+{ lib, pythonPackages, python }:
 
 python.pkgs.buildPythonPackage rec {
   pname = "lightning_cloud";
@@ -19,7 +19,7 @@ python.pkgs.buildPythonPackage rec {
     pythonPackages.requests
     pythonPackages.pyjwt
     pythonPackages.click
-    fastapi
+    pythonPackages.fastapi
     pythonPackages.rich
     pythonPackages.uvicorn
     pythonPackages.ujson

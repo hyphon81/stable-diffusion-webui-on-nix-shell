@@ -2,16 +2,16 @@
 
 python.pkgs.buildPythonPackage rec {
   pname = "safetensors";
-  version = "0.3.0";
+  version = "0.4.2";
   format = "wheel";
 
   src = python.pkgs.fetchPypi {
     inherit pname version format;
-    dist = "cp310";
-    python = "cp310";
-    abi = "cp310";
+    dist = "cp311";
+    python = "cp311";
+    abi = "cp311";
     platform = "manylinux_2_17_x86_64.manylinux2014_x86_64";
-    sha256 = "sha256-fuxqxfaRj7iV6zrsM9C+jpH9GP3qr5TKG+jPlFynSDg=";
+    sha256 = "sha256-Aml/jyvoyjw3pJWHAtvbGGREfvdl4YtTKKFhcCLc8WQ=";
   };
 
   buildInputs = [

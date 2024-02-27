@@ -1,12 +1,13 @@
-{ lib, pythonPackages, python }:
+{ lib, pythonPackages, python, poetry }:
 
 python.pkgs.buildPythonPackage rec {
   pname = "blendmodes";
-  version = "2022";
+  version = "2023";
+  format = "pyproject";
 
   src = python.pkgs.fetchPypi {
     inherit pname version;
-    hash = "sha256-k2jxwekOhzS0lo8MrANpbg5acU/VfnS8bu/SXAQY/QM=";
+    hash = "sha256-EI7baRFGhoCzeUhK2DalclZKH10AGDqnwI3ssyHTULg=";
   };
 
   buildInputs = [
@@ -14,6 +15,8 @@ python.pkgs.buildPythonPackage rec {
     pythonPackages.pillow
     pythonPackages.deprecation
     pythonPackages.numpy
+    poetry
+    pythonPackages.poetry-core
   ];
 
   pythonImportsCheck = [

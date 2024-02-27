@@ -17,11 +17,11 @@ let
     pip
   ]);
 
-  stable-diffusion-webui = pkgs.callPackage ./stable-diffusion/stable-diffusion-webui.nix {
-      pythonPackages = pythonPackages;
-      python = python;
-      cudaPackages = cudaPackages;
-      opencv = opencv;
+  stable-diffusion-webui = with pkgs; callPackage ./stable-diffusion/stable-diffusion-webui.nix {
+    pythonPackages = pythonPackages;
+    python = python;
+    cudaPackages = cudaPackages;
+    opencv = opencv;
   };
 in
   pkgs.mkShell {
